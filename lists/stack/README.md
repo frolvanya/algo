@@ -1,0 +1,1 @@
+![Stack](../../images/stack.png)
