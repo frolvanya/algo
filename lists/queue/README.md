@@ -1,1 +1,1 @@
-![Queue](images/queue.png)
+![Queue](../../images/queue.png)
