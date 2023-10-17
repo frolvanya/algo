@@ -1,40 +1,33 @@
-use rand::prelude::*;
+fn partition(arr: &mut [i32], lo: i32, hi: i32) -> i32 {
+    let pivot = arr[hi as usize];
 
-fn partition(arr: &mut [i32], low: usize, high: usize) -> usize {
-    let pivot = low;
-    let mut i = low + 1;
+    let mut idx = lo - 1;
 
-    for j in low + 1..high + 1 {
-        if arr[j] < arr[pivot] {
-            arr.swap(i, j);
-            i += 1;
+    for i in lo..hi {
+        if arr[i as usize] <= pivot {
+            idx += 1;
+            arr.swap(idx as usize, i as usize);
         }
     }
 
-    arr.swap(i - 1, pivot);
+    idx += 1;
+    arr.swap(idx as usize, hi as usize);
 
-    i - 1
+    idx
 }
 
-fn partition_r(arr: &mut [i32], low: usize, high: usize) -> usize {
-    let r = rand::thread_rng().gen_range(low..high);
-    arr.swap(low, r);
-    partition(arr, low, high)
-}
-
-fn quick_sort(arr: &mut Vec<i32>, low: usize, high: usize) {
-    if low < high {
-        let p = partition_r(arr, low, high);
-
-        quick_sort(arr, low, p);
-        quick_sort(arr, p + 1, high);
+fn qs(arr: &mut Vec<i32>, lo: i32, hi: i32) {
+    if lo >= hi {
+        return;
     }
+    let p = partition(arr, lo, hi);
+    qs(arr, lo, p - 1);
+    qs(arr, p + 1, hi);
 }
 
 fn main() {
-    let mut arr = vec![5, 1, 1, 2, 0, 0];
-    let length = arr.len();
+    let mut arr = vec![10, 7, 8, 9, 1, 5];
+    let length = arr.len() as i32;
 
-    quick_sort(&mut arr, 0, length - 1);
-    println!("{:?}", arr);
+    qs(&mut arr, 0, length - 1);
 }
