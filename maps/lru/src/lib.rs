@@ -1,17 +1,19 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 #[derive(PartialEq, Eq, Clone)]
-struct Node<T> {
-    val: T,
-    next: Link<T>,
-    prev: Link<T>,
+struct Node<K, V> {
+    key: K,
+    val: V,
+    next: Link<K, V>,
+    prev: Link<K, V>,
 }
 
-type Link<T> = Option<Rc<RefCell<Node<T>>>>;
+type Link<K, V> = Option<Rc<RefCell<Node<K, V>>>>;
 
-impl<T> Node<T> {
-    fn new(val: T) -> Self {
+impl<K, V> Node<K, V> {
+    fn new(key: K, val: V) -> Self {
         Self {
+            key,
             val,
             next: None,
             prev: None,
@@ -19,9 +21,10 @@ impl<T> Node<T> {
     }
 }
 
-impl<T> std::fmt::Debug for Node<T>
+impl<K, V> std::fmt::Debug for Node<K, V>
 where
-    T: Clone + std::fmt::Debug,
+    K: std::fmt::Debug,
+    V: Clone + std::fmt::Debug,
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut next = None;
@@ -33,6 +36,7 @@ where
             prev = Some(node.borrow().val.clone());
         }
         f.debug_struct("Node")
+            .field("key", &self.key)
             .field("val", &self.val)
             .field("next", &next)
             .field("prev", &prev)
@@ -44,10 +48,10 @@ struct Lru<K, V> {
     length: usize,
     capacity: usize,
 
-    head: Link<V>,
-    tail: Link<V>,
+    head: Link<K, V>,
+    tail: Link<K, V>,
 
-    lookup: HashMap<K, Link<V>>,
+    lookup: HashMap<K, Link<K, V>>,
 }
 
 impl<K, V> Lru<K, V>
@@ -74,7 +78,7 @@ where
                 inside_node.borrow_mut().val = value;
             }
         } else {
-            let node = Rc::new(RefCell::new(Node::new(value)));
+            let node = Rc::new(RefCell::new(Node::new(key.clone(), value)));
 
             self.length += 1;
             self.prepend(&mut Some(node.clone()));
@@ -101,25 +105,19 @@ where
     }
 
     fn trim_cache(&mut self) {
-        dbg!(self.length);
-        if dbg!(self.length > self.capacity) {
+        if self.length > self.capacity {
             if let Some(inside_tail) = self.tail.clone() {
                 self.detach(&self.tail.clone());
 
-                // O(n) is kinda bad, I should use reverse lookup with inversed key-value
-                // but it would require more memory
-                for (key, value) in self.lookup.clone() {
-                    if value == Some(inside_tail.clone()) {
-                        self.lookup.remove(&key);
-                        self.length -= 1;
-                        break;
-                    }
-                }
+                let key = inside_tail.borrow().key.clone();
+
+                self.lookup.remove(&key);
+                self.length -= 1;
             }
         }
     }
 
-    fn detach(&mut self, node: &Link<V>) {
+    fn detach(&mut self, node: &Link<K, V>) {
         if let Some(inside_node) = &node {
             if let Some(prev_node) = &inside_node.borrow().prev {
                 prev_node.borrow_mut().next = inside_node.borrow().next.clone();
@@ -146,7 +144,7 @@ where
         }
     }
 
-    fn prepend(&mut self, node: &mut Link<V>) {
+    fn prepend(&mut self, node: &mut Link<K, V>) {
         if let Some(inside_head) = &self.head {
             if let Some(inside_node) = node {
                 inside_node.borrow_mut().next = self.head.clone();
