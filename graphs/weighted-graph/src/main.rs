@@ -15,18 +15,12 @@ impl Graph {
     }
 
     fn add_vertex(&mut self, vertex: i32) {
-        self.vertices.entry(vertex).or_insert(Vec::new());
+        self.vertices.entry(vertex).or_default();
     }
 
     fn add_edge(&mut self, u: i32, v: i32, weight: i32) {
-        self.vertices
-            .entry(u)
-            .or_insert(Vec::new())
-            .push((v, weight));
-        self.vertices
-            .entry(v)
-            .or_insert(Vec::new())
-            .push((u, weight));
+        self.vertices.entry(u).or_default().push((v, weight));
+        self.vertices.entry(v).or_default().push((u, weight));
     }
 
     fn get_neighbors(&self, vertex: i32) -> Option<&Vec<(i32, i32)>> {
