@@ -45,6 +45,7 @@ where
     }
 }
 
+#[allow(dead_code)]
 struct Lru<K, V> {
     length: usize,
     capacity: usize,
@@ -55,6 +56,7 @@ struct Lru<K, V> {
     lookup: HashMap<K, Link<K, V>>,
 }
 
+#[allow(dead_code)]
 impl<K, V> Lru<K, V>
 where
     K: Eq + std::hash::Hash + Clone,
