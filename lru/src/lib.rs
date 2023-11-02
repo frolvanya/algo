@@ -10,6 +10,7 @@ struct Node<K, V> {
 
 type Link<K, V> = Option<Rc<RefCell<Node<K, V>>>>;
 
+#[allow(dead_code)]
 impl<K, V> Node<K, V> {
     fn new(key: K, val: V) -> Self {
         Self {
