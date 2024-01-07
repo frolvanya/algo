@@ -1,30 +1,30 @@
-use std::collections::{HashMap, HashSet};
+use std::{
+    cmp::Reverse,
+    collections::{BinaryHeap, HashMap},
+};
 
-fn prims<'a>(graph: &HashMap<&'a str, Vec<(&'a str, usize)>>, source: &'a str) -> HashSet<String> {
-    let mut mst = HashSet::new();
+fn prims<'a>(
+    graph: &HashMap<&'a str, Vec<(&'a str, usize)>>,
+    source: &'a str,
+) -> HashMap<&'a str, Vec<(&'a str, usize)>> {
+    let mut mst = HashMap::new();
+    mst.insert(source, Vec::new());
 
-    mst.insert(source.to_string());
+    let mut pq = BinaryHeap::new();
+    for (edge, weight) in &graph[source] {
+        pq.push((Reverse(weight), source, edge));
+    }
 
-    let mut edges = graph.get(source).unwrap().clone();
-    while mst.len() < graph.len() {
-        let mut min_edge = None;
-        let mut min_weight = usize::MAX;
-
-        for (edge, weight) in edges.clone() {
-            if !mst.contains(edge) && weight < min_weight {
-                min_edge = Some(edge);
-                min_weight = weight;
-            }
+    while let Some((Reverse(weight), from, to)) = pq.pop() {
+        if mst.contains_key(to) {
+            continue;
         }
 
-        if let Some(min_edge_value) = min_edge {
-            mst.insert(min_edge_value.to_string());
+        mst.get_mut(from).unwrap().push((*to, *weight));
+        mst.insert(to, Vec::new());
 
-            for &edge in graph.get(min_edge_value).unwrap() {
-                edges.push(edge);
-            }
-
-            edges.retain(|edge| edge.0 != min_edge_value);
+        for (edge, weight) in &graph[to] {
+            pq.push((Reverse(weight), to, edge));
         }
     }
 
@@ -46,11 +46,16 @@ mod tests {
 
         let result = prims(&graph, "A");
 
-        let answer = HashSet::from_iter(
-            vec!["A", "B", "C", "D", "E"]
-                .into_iter()
-                .map(|x| x.to_string()),
-        );
+        let answer = {
+            let mut mst = HashMap::new();
+            mst.insert("A", vec![("C", 2)]);
+            mst.insert("C", vec![("B", 1)]);
+            mst.insert("B", vec![("D", 2), ("E", 3)]);
+            mst.insert("D", vec![]);
+            mst.insert("E", vec![]);
+
+            mst
+        };
         assert_eq!(result, answer);
     }
 }
