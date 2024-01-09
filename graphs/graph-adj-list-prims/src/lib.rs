@@ -21,7 +21,7 @@ fn prims<'a>(
         }
 
         mst.entry(from).or_default().push((*to, *weight));
-        mst.insert(to, Vec::new());
+        mst.entry(to).or_default().push((from, *weight));
 
         for (edge, weight) in &graph[to] {
             pq.push((Reverse(weight), to, edge));
@@ -49,10 +49,10 @@ mod tests {
         let answer = {
             let mut mst = HashMap::new();
             mst.insert("A", vec![("C", 2)]);
-            mst.insert("C", vec![("B", 3)]);
-            mst.insert("B", vec![("D", 2)]);
-            mst.insert("D", vec![("E", 1)]);
-            mst.insert("E", Vec::new());
+            mst.insert("B", vec![("C", 3), ("D", 2)]);
+            mst.insert("C", vec![("A", 2), ("B", 3)]);
+            mst.insert("D", vec![("B", 2), ("E", 1)]);
+            mst.insert("E", vec![("D", 1)]);
 
             mst
         };
